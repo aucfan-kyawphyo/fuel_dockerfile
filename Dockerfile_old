@@ -1,0 +1,47 @@
+FROM centos:6.6
+MAINTAINER kyawphyonaing
+
+# update yum
+RUN yum update -y && \
+    yum clean all
+
+# epel repo
+RUN yum install -y http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm && \
+    yum clean all
+COPY epel.repo /etc/yum.repos.d/
+
+# remi repo
+RUN yum install -y http://rpms.famillecollet.com/enterprise/remi-release-6.rpm && \
+    yum clean all
+COPY remi.repo /etc/yum.repos.d/
+
+# mysql repo
+RUN yum install -y http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm && \
+    yum clean all
+
+# install php
+RUN yum install -y php php-mysql php-devel php-gd php-pecl-memcache php-pspell php-snmp php-xmlrpc php-xml && \
+    yum clean all
+
+# install mysql
+RUN yum install -y mysql mysql-server mysql-devel && \
+    yum clean all
+
+# install other 
+RUN yum -y install vim
+RUN yum -y install curl
+
+# setting 
+COPY /etc/php.ini /etc/php.ini.org
+ADD php.ini /etc/php.ini
+COPY /etc/my.cnf /etc/my.cnf.org
+ADD my.cnf /etc/my.cnf
+COPY clock /etc/sysconfig/clock
+ADD httpd.conf /etc/httpd/conf/httpd.conf
+
+# restart
+RUN sudo service httpd start && \
+	sudo chkconfig httpd on	&& \
+	sudo service iptables stop	&& \
+	sudo chkconfig iptables off && \
+	sudo service mysqld restart
